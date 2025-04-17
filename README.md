@@ -7,6 +7,9 @@ A shark-y bootstrapper which offers new features for casuals and professionals t
 > sharkfin is in it's early stages of development. No compiled builds will be released until the code is production-ready. If you want to join beta testing that will be done soon, [Join the sharkfin Discord](https://discord.gg/mKZhdNbens)!
 
 # Prerequisites
+> [!WARNING]
+> These are the things that must be downloaded before running sharkfin. Not downloading these might cause sharkfin to not run properly.
+
 - [Microsoft Edge WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2?form=MA13LH#download)
 
 # Features
