@@ -2,6 +2,9 @@ from winreg import CreateKey, SetValue, SetValueEx, CloseKey, HKEY_CURRENT_USER,
 from subprocess import check_output
 from threading import Timer
 from re import split
+from os import environ, path, scandir
+from tempfile import gettempdir
+from sys import platform
 
 def debounce(time):
     def decorator(fn):
@@ -51,3 +54,24 @@ def set_protocol(protocol, application_path, program_name):
         print(f"Successfully registered protocol: {protocol} with name: {program_name}")
     except Exception as e:
         print(f"Failed to register protocol {protocol}: {e}")
+
+def get_discord_ipc_path(pipe=None):
+    ipc = 'discord-ipc-'
+    if pipe:
+        ipc = f"{ipc}{pipe}"
+
+    if platform in ('linux', 'darwin'):
+        tempdir = (environ.get('XDG_RUNTIME_DIR') or gettempdir())
+        paths = ['.', 'snap.discord', 'app/com.discordapp.Discord', 'app/com.discordapp.DiscordCanary']
+    elif platform == 'win32':
+        tempdir = r'\\?\pipe'
+        paths = ['.']
+    else:
+        return
+    
+    for p in paths:
+        full_path = path.abspath(path.join(tempdir, p))
+        if platform == 'win32' or path.isdir(full_path):
+            for entry in scandir(full_path):
+                if entry.name.startswith(ipc) and path.exists(entry):
+                    return entry.path

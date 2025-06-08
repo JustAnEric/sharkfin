@@ -57,6 +57,11 @@ class SharkfinWindow:
                 return True
         
         return asyncio.run(_func(item, value))
+    
+    def getDiscordAvailable(self):
+        if 'discord_available' in locals():
+            return discord_available
+        return False
 
 #? sharkfin window for editing fast flags. 
 class SharkfinFFlagEditor:
@@ -105,8 +110,10 @@ class SharkfinLoaderWindow:
                 changeStatus("Starting Discord RPC...")
                 instance = SharkfinInstance()
                 RobloxClientId = "1351739329038258237" # for sharkfin
-                RobloxRPC = pypresence.Presence(RobloxClientId)
-                RobloxRPC.connect()
+                if discord_available:
+                    RobloxRPC = pypresence.Presence(RobloxClientId)
+                    RobloxRPC.connect()
+                
 
                 #? i have no idea why but this makes it so that i dont have to define
                 #? global variables that i need to put lol
@@ -262,6 +269,12 @@ if __name__ == "__main__":
     #? Make sure that the script's path when accessing files n stuff is where the script/executable is currently on.
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
+    #? Check for Discord
+    discord_available = Utils.get_discord_ipc_path()
+    
+    if not discord_available:
+        print("Discord was not found, could not configure RPC")
+    
     if len(sys.argv) > 1: #? launch loader (to load roblox or roblox studio)
         with open(resource(os.path.join("data", "config.json")), "r") as config:
             config = json.load(config)
@@ -285,11 +298,12 @@ if __name__ == "__main__":
         webview.start(debug=debug)
         
     else: #? launch sharkfin
-        SharkfinRPC = pypresence.Presence("1351733786651660318")
-        SharkfinRPC.connect()
-        SharkfinRPC.update(
-            state="Configuring Roblox Settings"
-        )
+        if discord_available:
+            SharkfinRPC = pypresence.Presence("1351733786651660318")
+            SharkfinRPC.connect()
+            SharkfinRPC.update(
+                state="Configuring Roblox Settings"
+            )
         
         window = webview.create_window(
             title="sharkfin",

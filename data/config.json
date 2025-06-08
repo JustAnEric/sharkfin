@@ -47,5 +47,6 @@
     "deployment-autoupdate-sharkfin": true,
     "deployment-autoupdate-roblox": true,
     "deployment-roblox-channel": "production",
-    "sharkfin-loader-name": "roblox-theme"
+    "sharkfin-loader-name": "roblox-theme",
+    "experience-tracking": true
 }
