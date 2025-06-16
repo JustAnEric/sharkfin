@@ -28,8 +28,7 @@ jobs:
       # Step 4: Compile code with PyInstaller
       - name: Compile code with PyInstaller
         run: |
-          pyinstaller --noconfirm --onefile --windowed --icon "assets\images\sharkfin.ico" --name "Sharkfin" --add-data "new.html;." --add-data "main.html;." --add-data "assets;assets/" --add-data "data;data/" --add-data "loader-themes;loader-themes/" --distpath ".\dist" .\main.py
-          # Replace `your_script.py` with the name of your Python script
+          pyinstaller --noconfirm --onefile --windowed --icon "assets\images\sharkfin.ico" --name "Sharkfin-raw-x64" --add-data "new.html;." --add-data "main.html;." --add-data "assets;assets/" --add-data "data;data/" --add-data "loader-themes;loader-themes/" --distpath ".\dist" .\main.py
 
       # Step 5: Upload compiled artifact
       - name: Upload artifact
@@ -37,7 +36,6 @@ jobs:
         with:
           name: compiled-app
           path: dist/Sharkfin-raw-x64.exe
-          # Replace `your_script.exe` with the name of the compiled executable
 
   release:
     runs-on: ubuntu-latest
