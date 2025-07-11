@@ -62,6 +62,31 @@ class SharkfinWindow:
         if 'discord_available' in locals():
             return discord_available
         return False
+    
+    def launchRoblox(self):
+        with open(resource(os.path.join("data", "config.json")), "r") as config:
+            config = json.load(config)
+
+        loaderName = config["sharkfin-loader-name"]
+        with open(resource(os.path.join("loader-themes", loaderName, "config.json")), "r") as loaderConfig:
+            loaderConfig = json.load(loaderConfig)
+            debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+        
+        self.minimizeWindow()
+        
+        global loader
+        loader = webview.create_window(
+            title="sharkfin" if loaderTitle == "" else loaderTitle,
+            url=resource(os.path.join("loader-themes", loaderName, "window.html")),
+            
+            width=loaderWidth + 16, height=loaderHeight + 39,
+            frameless=True,
+            easy_drag=True,
+            js_api=sharkfinLoader,
+            background_color="#000000"
+        )
+        
+        #webview.start(debug=debug)
 
 #? sharkfin window for editing fast flags. 
 class SharkfinFFlagEditor:
@@ -71,14 +96,19 @@ class SharkfinFFlagEditor:
 class SharkfinLoaderWindow:
     #? main function to do the checks
     #? this function is ran when the page loads.
-    def start(self):
+    def start(self, command=None):
         def changeStatus(text):
             loader.run_js(f'document.getElementById("status").innerText = "{text}"')
         
         with open(resource(os.path.join("data", "config.json")), "r") as config:
             config = json.load(config)
         
-        command = sys.argv[1]
+        if not command and len(sys.argv) > 1:
+            command = sys.argv[1]
+        elif not command:
+            command = "roblox-player"
+        else:
+            pass
         
         #? load roblox player
         if command.startswith("roblox"):
@@ -144,32 +174,35 @@ class SharkfinLoaderWindow:
                 @Utils.debounce(.1)
                 def updateRichPresence():
                     if server["currentPlayers"] < 1:
-                        RobloxRPC.update(
-                            state="Home",
-                            large_image="roblox"
-                        )
+                        if discord_available and 'RobloxRPC' in locals():
+                            RobloxRPC.update(
+                                state="Home",
+                                large_image="roblox"
+                            )
                     else:
                         if server["isReserved"] or server["isPrivate"]:
                             stype = "private, reserved" if server["isReserved"] and server["isPrivate"] else "private" if server["isPrivate"] else "reserved"
 
-                            RobloxRPC.update(
-                                state="Playing " + game["name"],
-                                details=f"In a {stype} server.",
-                                large_image=game["image"],
-                                small_image=user["image"],
-                                small_text=user["name"],
-                                start=server["startTime"]
-                            )
+                            if discord_available and 'RobloxRPC' in locals():
+                                RobloxRPC.update(
+                                    state="Playing " + game["name"],
+                                    details=f"In a {stype} server.",
+                                    large_image=game["image"],
+                                    small_image=user["image"],
+                                    small_text=user["name"],
+                                    start=server["startTime"]
+                                )
                         else:
-                            RobloxRPC.update(
-                                state="Playing " + game["name"],
-                                large_image=game["image"],
-                                small_image=user["image"],
-                                small_text=user["name"],
-                                party_id=server["id"],
-                                party_size=[server["currentPlayers"], game["maxPlayers"]],
-                                start=server["startTime"]
-                            )
+                            if discord_available and 'RobloxRPC' in locals():
+                                RobloxRPC.update(
+                                    state="Playing " + game["name"],
+                                    large_image=game["image"],
+                                    small_image=user["image"],
+                                    small_text=user["name"],
+                                    party_id=server["id"],
+                                    party_size=[server["currentPlayers"], game["maxPlayers"]],
+                                    start=server["startTime"]
+                                )
 
                 @instance.event
                 async def player_joined(user, id):
@@ -241,12 +274,14 @@ class SharkfinLoaderWindow:
             changeStatus("Starting Roblox...")
             time.sleep(1)
             loader.hide() # destroy = completely kill the entire process.. NO WONDER WHY RUNNING ROBLOX KILLS ALL OF THESE
+            # roblox process is under the sharkfin app. if you destroy the sharkfin app, the roblox app will also be killed.
             
             playerPath = resource(os.path.join("Roblox", "Player", "RobloxPlayerBeta.exe"))
             subprocess.run([playerPath, command], shell=True)
             
             if True: #! add rpc integration option if enabled or not pls
-                RobloxRPC.close()
+                if 'RobloxRPC' in locals():
+                    RobloxRPC.close()
                 
             loader.show()
             changeStatus("Stopping Processes...")

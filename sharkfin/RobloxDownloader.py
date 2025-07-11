@@ -89,7 +89,7 @@ def download(config, channel=None):
         last_progress = progress
         yield progress, message
 
-    with Client(timeout=timeout) as client:
+    with Client(timeout=timeout, verify=False) as client:
 
         def fetch(url, retries=2, delay=3):
             for attempt in range(retries + 1):
