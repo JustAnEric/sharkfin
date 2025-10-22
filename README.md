@@ -20,7 +20,7 @@ Check out the docs for this Sharkfin fork for more up-to-date information! - [DO
 
 - [x] Activity Tracking
     - You can toggle off some tracking, though some sharkfin features may not work!
-- [ ] Customizable Bootloader (HTML+CSS)
+- [x] Customizable Bootloader (HTML+CSS)
 - [ ] Customizable Fast Flags
 - [x] Discord Rich Presence
 - [ ] Fast Flag Editor
