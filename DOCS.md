@@ -2,7 +2,7 @@
 
 # Sharkfin | Docs
 
-> [!INFO]
+> [!NOTE]
 > This project was originally made by the [snarkden organization](https://github.com/snarkden). I have no affiliation with their projects, this is only a production-ready fork that is actively being maintained. This DOCS.md page is not made by members on the snarkden team.
 
 ## Local App Directory
