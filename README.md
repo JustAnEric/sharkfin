@@ -18,11 +18,11 @@ Check out the docs for this Sharkfin fork for more up-to-date information! - [DO
 > [!WARNING]
 > These features are not finalized/finished and may change throughout sharkfin's development depending if claimed features are doable or not.
 
-- Activity Tracking
+- [x] Activity Tracking
     - You can toggle off some tracking, though some sharkfin features may not work!
-- Customizable Bootloader (HTML+CSS)
-- Customizable Fast Flags
-- Discord Rich Presence
-- Fast Flag Editor
-- Application Integration
-- Modding Integration (python) using the [sharkfin Modding Framework](https://github.com/snarkden/sharkfin-framework)
+- [ ] Customizable Bootloader (HTML+CSS)
+- [ ] Customizable Fast Flags
+- [x] Discord Rich Presence
+- [ ] Fast Flag Editor
+- [ ] Application Integration
+- [ ] Modding Integration (python) using the [sharkfin Modding Framework](https://github.com/snarkden/sharkfin-framework)
