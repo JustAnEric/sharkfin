@@ -4,7 +4,10 @@ import os
 import subprocess
 import sys
 import time
+import getpass
+import zipfile
 from threading import Thread
+from flask import Flask, send_from_directory
 
 import aiofiles
 import httpx
@@ -15,12 +18,16 @@ import sharkfin.RobloxDownloader as RobloxDownloader
 import sharkfin.Utils as Utils
 from sharkfin.Instance import Sharkfin as SharkfinInstance
 
+frozen_config = f"C:\\Users\\{getpass.getuser()}\\AppData\\Local\\sharkfin"
 
 #* use this when accessing files outside a frozen environment. (permanent, outside frozen)
 #* else just use normal paths to get files inside a frozen environment (not-permanent, inside frozen)
 def resource(path: str):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
 
+def is_frozen():
+    """Check if the script is running in a frozen environment (like PyInstaller)."""
+    return getattr(sys, 'frozen', False)
 
 #? main sharkfin window
 class SharkfinWindow:
@@ -46,7 +53,10 @@ class SharkfinWindow:
     
     def configureSetting(self, item, value=None):
         async def _func(item, value):
-            config_path = resource("data/config.json")
+            if not is_frozen():
+                config_path = resource("data/config.json")
+            else:
+                config_path = os.path.join(frozen_config, "data", "config.json")
             config = await self.read(config_path)
             
             if value is None:
@@ -64,20 +74,37 @@ class SharkfinWindow:
         return False
     
     def launchRoblox(self):
-        with open(resource(os.path.join("data", "config.json")), "r") as config:
-            config = json.load(config)
+        if not is_frozen():
+            with open(resource(os.path.join("data", "config.json")), "r") as config:
+                config = json.load(config)
 
-        loaderName = config["sharkfin-loader-name"]
-        with open(resource(os.path.join("loader-themes", loaderName, "config.json")), "r") as loaderConfig:
-            loaderConfig = json.load(loaderConfig)
-            debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+            loaderName = config["sharkfin-loader-name"]
+            with open(resource(os.path.join("loader-themes", loaderName, "config.json")), "r") as loaderConfig:
+                loaderConfig = json.load(loaderConfig)
+                debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+        else:
+            with open(os.path.join(frozen_config, "data", "config.json"), "r") as config:
+                config = json.load(config)
+
+            loaderName = config["sharkfin-loader-name"]
+            with open(os.path.join(frozen_config, "loader-themes", loaderName, "config.json"), "r") as loaderConfig:
+                loaderConfig = json.load(loaderConfig)
+                debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
         
         self.minimizeWindow()
         
         global loader
+        
+        if is_frozen():
+            sharkfinWs.run_server_thread = Thread(target=sharkfinWs.run_server, daemon=False)
+            sharkfinWs.run_server_thread.start()
+        
         loader = webview.create_window(
             title="sharkfin" if loaderTitle == "" else loaderTitle,
-            url=resource(os.path.join("loader-themes", loaderName, "window.html")),
+            url=resource(os.path.join("loader-themes", loaderName, "window.html")) 
+            if not is_frozen() else 
+            #os.path.join(frozen_config, "loader-themes", loaderName, "window.html"),
+            "http://127.0.0.1:7532/loader-themes/" + loaderName + "/window.html",
             
             width=loaderWidth + 16, height=loaderHeight + 39,
             frameless=True,
@@ -100,8 +127,12 @@ class SharkfinLoaderWindow:
         def changeStatus(text):
             loader.run_js(f'document.getElementById("status").innerText = "{text}"')
         
-        with open(resource(os.path.join("data", "config.json")), "r") as config:
-            config = json.load(config)
+        if not is_frozen():
+            with open(resource(os.path.join("data", "config.json")), "r") as config:
+                config = json.load(config)
+        else:
+            with open(os.path.join(frozen_config, "data", "config.json"), "r") as config:
+                config = json.load(config)
         
         if not command and len(sys.argv) > 1:
             command = sys.argv[1]
@@ -112,15 +143,23 @@ class SharkfinLoaderWindow:
         
         #? load roblox player
         if command.startswith("roblox"):
-            robloxPlayerExists = os.path.exists(resource(os.path.join("Roblox", "Player", "RobloxPlayerBeta.exe")))
+            if not is_frozen():
+                robloxPlayerExists = os.path.exists(resource(os.path.join("Roblox", "Player", "RobloxPlayerBeta.exe")))
+            else:
+                robloxPlayerExists = os.path.exists(os.path.join(frozen_config, "Roblox", "Player", "RobloxPlayerBeta.exe"))
             
             if robloxPlayerExists:
                 if config["deployment-autoupdate-roblox"]:
                     changeStatus("Checking for Roblox Update...")
                     
-                    with open(resource(os.path.join("Roblox", "Player", "sf-version.txt")), "r") as file:
-                        content = file.read()
-                        local_version, local_clientVersionUpload = content.split("|")
+                    if not is_frozen():
+                        with open(resource(os.path.join("Roblox", "Player", "sf-version.txt")), "r") as file:
+                            content = file.read()
+                            local_version, local_clientVersionUpload = content.split("|")
+                    else:
+                        with open(os.path.join(frozen_config, "Roblox", "Player", "sf-version.txt"), "r") as file:
+                            content = file.read()
+                            local_version, local_clientVersionUpload = content.split("|")
                     
                     response = httpx.get(RobloxDownloader.WINDOWSPLAYER["clientVersionURL"]).json()
                     server_clientVersionUpload = response["clientVersionUpload"]
@@ -276,7 +315,7 @@ class SharkfinLoaderWindow:
             loader.hide() # destroy = completely kill the entire process.. NO WONDER WHY RUNNING ROBLOX KILLS ALL OF THESE
             # roblox process is under the sharkfin app. if you destroy the sharkfin app, the roblox app will also be killed.
             
-            playerPath = resource(os.path.join("Roblox", "Player", "RobloxPlayerBeta.exe"))
+            playerPath = resource(os.path.join("Roblox", "Player", "RobloxPlayerBeta.exe")) if not is_frozen() else os.path.join(frozen_config, 'Roblox', 'Player', 'RobloxPlayerBeta.exe')
             subprocess.run([playerPath, command], shell=True)
             
             if True: #! add rpc integration option if enabled or not pls
@@ -294,13 +333,74 @@ class SharkfinLoaderWindow:
             ...
             
         loader.destroy()
-
         
+class EIFolderWebServer(Flask):
+    def __init__(self):
+        super().__init__(import_name=__name__)
+        
+        self._run_server_thread = None
+        
+        @self.route('/')
+        def root():
+            return "Directory listing is not allowed.", 403
+        
+        @self.route('/<path:path>')
+        def serve_file(path):
+            if os.path.join(frozen_config, path).endswith('/'):
+                if os.path.isfile(os.path.join(frozen_config, path, 'index.html')):
+                    path += 'index.html'
+                else:
+                    return "Directory listing is not allowed.", 403
+            if os.path.isdir(os.path.join(frozen_config, path)):
+                return "Directory listing is not allowed.", 403
+            
+            folder = os.path.join(frozen_config)
+            return send_from_directory(folder, path)
+        
+    @property
+    def run_server_thread(self) -> Thread:
+        return self._run_server_thread
+
+    @run_server_thread.setter
+    def run_server_thread(self, thread: Thread):
+        self._run_server_thread = thread
+    
+    def run_server(self):
+        self.run(host='127.0.0.1', port=7532, debug=False, use_reloader=False)
+
 sharkfin = SharkfinWindow()
 sharkfinEditor = SharkfinFFlagEditor()
 sharkfinLoader = SharkfinLoaderWindow()
+sharkfinWs = EIFolderWebServer()
 
 if __name__ == "__main__":
+    if ((is_frozen() and not os.path.isdir(frozen_config)) or 
+        (is_frozen() and not os.path.exists(os.path.join(frozen_config, 'data'))) or
+        (is_frozen() and not os.path.exists(os.path.join(frozen_config, 'loader-themes'))) or
+        (is_frozen() and not os.path.exists(os.path.join(frozen_config, 'assets')))):
+        os.makedirs(frozen_config, exist_ok=True)
+        os.makedirs(os.path.join(frozen_config, 'data'), exist_ok=True)
+        if os.path.exists(os.path.join(frozen_config, 'data')):
+            with open(resource('data/config.json'), 'r') as fr:
+                with open(os.path.join(frozen_config, 'data', 'config.json'), 'w') as fw:
+                    fw.write(fr.read())
+                    fw.close()
+                fr.close()
+        # unpack loader themes
+        os.makedirs(os.path.join(frozen_config, 'loader-themes'), exist_ok=True)
+        if os.path.exists(os.path.join(frozen_config, 'loader-themes')):
+            with zipfile.ZipFile(resource("default-loader-themes.res"), 'r') as zip_ref:
+                for file in zip_ref.namelist():
+                    zip_ref.extract(file, os.path.join(frozen_config, 'loader-themes'))
+                zip_ref.close()
+        # unpack assets
+        os.makedirs(os.path.join(frozen_config, 'assets'), exist_ok=True)
+        if os.path.exists(os.path.join(frozen_config, 'assets')):
+            with zipfile.ZipFile(resource("assets.res"), 'r') as zip_ref:
+                for file in zip_ref.namelist():
+                    zip_ref.extract(file, os.path.join(frozen_config, 'assets'))
+                zip_ref.close()
+    
     #? Make sure that the script's path when accessing files n stuff is where the script/executable is currently on.
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
@@ -311,17 +411,33 @@ if __name__ == "__main__":
         print("Discord was not found, could not configure RPC")
     
     if len(sys.argv) > 1: #? launch loader (to load roblox or roblox studio)
-        with open(resource(os.path.join("data", "config.json")), "r") as config:
-            config = json.load(config)
+        if not is_frozen():
+            with open(resource(os.path.join("data", "config.json")), "r") as config:
+                config = json.load(config)
 
-        loaderName = config["sharkfin-loader-name"]
-        with open(resource(os.path.join("loader-themes", loaderName, "config.json")), "r") as loaderConfig:
-            loaderConfig = json.load(loaderConfig)
-            debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+            loaderName = config["sharkfin-loader-name"]
+            with open(resource(os.path.join("loader-themes", loaderName, "config.json")), "r") as loaderConfig:
+                loaderConfig = json.load(loaderConfig)
+                debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+        else:
+            with open(os.path.join(frozen_config, "data", "config.json"), "r") as config:
+                config = json.load(config)
+
+            loaderName = config["sharkfin-loader-name"]
+            with open(os.path.join(frozen_config, "loader-themes", loaderName, "config.json"), "r") as loaderConfig:
+                loaderConfig = json.load(loaderConfig)
+                debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+        
+        if is_frozen():
+            sharkfinWs.run_server_thread = Thread(target=sharkfinWs.run_server, daemon=False)
+            sharkfinWs.run_server_thread.start()
         
         loader = webview.create_window(
             title="sharkfin" if loaderTitle == "" else loaderTitle,
-            url=resource(os.path.join("loader-themes", loaderName, "window.html")),
+            url=resource(os.path.join("loader-themes", loaderName, "window.html")) 
+            if not is_frozen() else 
+            #os.path.join(frozen_config, "loader-themes", loaderName, "window.html"),
+            "http://127.0.0.1:7532/loader-themes/" + loaderName + "/window.html",
             
             width=loaderWidth + 16, height=loaderHeight + 39,
             frameless=True,
@@ -342,7 +458,7 @@ if __name__ == "__main__":
         
         window = webview.create_window(
             title="sharkfin",
-            url="./new.html",
+            url=resource("./new.html"),
             
             width=1100 + 16, height=780 + 39,
             frameless=True,

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharkfin Installer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.15"/><circle cx="10" cy="50" r="0.5" fill="white" opacity="0.15"/><circle cx="90" cy="30" r="0.5" fill="white" opacity="0.15"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .installer-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.15),
+                0 16px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            z-index: 2;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logo-container {
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .installer-container h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .version-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+
+        .installer-container p {
+            font-size: 16px;
+            margin-bottom: 32px;
+            color: #64748b;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            display: none;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .progress-bar-inner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .checkbox-group {
+            margin-bottom: 24px;
+            text-align: left;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            accent-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #475569;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .installer-container button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .installer-container button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .installer-container button:hover::before {
+            left: 100%;
+        }
+
+        .installer-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+        }
+
+        .installer-container button:active {
+            transform: translateY(0);
+        }
+
+        .installer-container button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-icon {
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
+            .installer-container {
+                padding: 24px;
+                margin: 16px;
+            }
+            
+            .installer-container h1 {
+                font-size: 24px;
+            }
+            
+            .logo {
+                width: 64px;
+                height: 64px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="installer-container">
+        <div class="logo-container">
+            <div class="logo"><img src="./sharkfin.webp" alt="logo" width="70"></div>
+            <h1>Sharkfin Installer</h1>
+            <div class="version-tag">v0.1.0</div>
+        </div>
+        
+        <p id="status-message">Welcome to the Sharkfin Installer. Get ready to enhance your Roblox experience with powerful modifications and features.</p>
+        
+        <!--<div class="progress-bar" id="progress-bar">
+            <div class="progress-bar-inner" id="progress-bar-inner"></div>
+        </div>-->
+        
+        <div class="checkbox-group after-install fade-in" hidden>
+            <label for="open-sharkfin-after-install">
+                <input type="checkbox" name="open-sharkfin-after-install" id="open-sharkfin-after-install" checked title="Open Sharkfin after installation">
+                <span>🚀 Launch Sharkfin after installation</span>
+            </label>
+        </div>
+        
+        <button id="install-button" onclick="startInstallation()">
+            <span class="status-icon">⚡</span>
+            Install Now
+        </button>
+        
+        <button id="close-installer-button" onclick="closeInstaller()" hidden>
+            <span class="status-icon">✨</span>
+            Complete Installation
+        </button>
+    </div>
+
+    <script>
+        async function startInstallation() {
+            const statusMessage = document.getElementById('status-message');
+            //const progressBar = document.getElementById('progress-bar');
+            //const progressBarInner = document.getElementById('progress-bar-inner');
+            const installButton = document.getElementById('install-button');
+            const closeInstallerButton = document.getElementById('close-installer-button');
+            const afterInstallCheckboxGroups = document.querySelectorAll('.checkbox-group.after-install');
+
+            // Disable the button to prevent multiple clicks
+            installButton.disabled = true;
+            installButton.innerHTML = '<span class="spinner"></span>Installing...';
+
+            // Show the progress bar
+            //progressBar.style.display = 'block';
+            statusMessage.innerHTML = '<span class="status-icon">⚙️</span>Installing Sharkfin components...';
+
+            //let progress = 0;
+
+            // Simulate installation progress
+            //window.addEventListener('pywebviewready', ()=>{
+            await pywebview.api.installSharkfin();
+            const interval = setInterval(async() => {
+                /*progress += 10;
+                progressBarInner.style.width = progress + '%';*/
+
+                if ((await pywebview.api.isInstalled()) == true) {
+                    clearInterval(interval);
+                    statusMessage.innerHTML = '<span class="status-icon">✅</span>Installation complete!';
+                    installButton.innerHTML = '<span class="status-icon">✨</span>Done';
+                    installButton.classList.add('success-animation');
+                    installButton.hidden = true;
+                    for (const checkboxGroup of afterInstallCheckboxGroups) {
+                        checkboxGroup.hidden = false;
+                        checkboxGroup.classList.add('fade-in');
+                    }
+                    closeInstallerButton.hidden = false;
+                    closeInstallerButton.classList.add('fade-in');
+                }
+            }, 500); // Update progress every 500ms
+            //});
+        }
+
+        async function closeInstaller() {
+            const openSharkfinAfterInstall = document.getElementById('open-sharkfin-after-install');
+            document.body.hidden = true; // Hide the installer UI
+            await pywebview.api.closeInstallerWithOptions({
+                openSharkfin: openSharkfinAfterInstall.checked
+            })
+            window.close();
+        }
+    </script>
+</body>
+</html>

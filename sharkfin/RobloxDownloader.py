@@ -5,11 +5,24 @@ from zipfile import ZipFile
 
 from httpx import Client, HTTPError, Timeout
 
+import os, sys, getpass
+
 host_path = "https://setup-cfly.rbxcdn.com"
+
+#* use this when accessing files outside a frozen environment. (permanent, outside frozen)
+#* else just use normal paths to get files inside a frozen environment (not-permanent, inside frozen)
+def resource(path: str):
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
+
+def is_frozen():
+    """Check if the script is running in a frozen environment (like PyInstaller)."""
+    return hasattr(sys, 'frozen') and sys.frozen
+
+frozen_config = f"C:\\Users\\{getpass.getuser()}\\AppData\\Local\\sharkfin"
 
 WINDOWSPLAYER = {
     "clientVersionURL": "https://clientsettings.roblox.com/v2/client-version/WindowsPlayer",
-    "outputDir": "./Roblox/Player",
+    "outputDir": resource("./Roblox/Player") if not is_frozen() else os.path.join(frozen_config, "Roblox", "Player"),
     "extractionPaths": {
         "RobloxApp.zip": "",
         "redist.zip": "",
@@ -39,7 +52,7 @@ WINDOWSPLAYER = {
 # TODO: Fix the error that it returns when attempting to launch Roblox Studio.
 WINDOWSSTUDIO64 = {
     "clientVersionURL": "https://clientsettings.roblox.com/v2/client-version/WindowsStudio64",
-    "outputDir": "./Roblox/Studio",
+    "outputDir": resource("./Roblox/Studio") if not is_frozen() else os.path.join(frozen_config, "Roblox", "Studio"),
     "extractionPaths": {
         "RobloxStudio.zip": "",
         "RibbonConfig.zip": "RibbonConfig/",

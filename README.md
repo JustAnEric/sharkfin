@@ -3,6 +3,8 @@
 # sharkfin
 A shark-y bootstrapper which offers new features for casuals and professionals to modify their Roblox experience!
 
+Check out the docs for this Sharkfin fork for more up-to-date information! - [DOCS.md](https://github.com/JustAnEric/sharkfin/blob/main/DOCS.md)
+
 > [!WARNING]
 > sharkfin is in it's early stages of development. No compiled builds will be released until the code is production-ready. If you want to join beta testing that will be done soon, [Join the sharkfin Discord](https://discord.gg/mKZhdNbens)!
 
