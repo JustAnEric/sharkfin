@@ -75,7 +75,7 @@ And import it into your `window.html` file like this:
         <text id="status" style="font-size: 14px; position: fixed; bottom: 4px; left: 5px;">Loading...</text>
         <script>
             window.addEventListener("pywebviewready", function() {
-                window.pywebview.api.doTasks();
+                window.pywebview.api.start();
             });
         </script>
     </body>
