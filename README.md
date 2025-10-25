@@ -25,4 +25,4 @@ Check out the docs for this Sharkfin fork for more up-to-date information! - [DO
 - [x] Discord Rich Presence
 - [ ] Fast Flag Editor
 - [ ] Application Integration
-- [ ] Modding Integration (python) using the [sharkfin Modding Framework](https://github.com/snarkden/sharkfin-framework)
+- [x] Modding Integration (python) using the [sharkfin Modding Framework](https://github.com/snarkden/sharkfin-framework)
