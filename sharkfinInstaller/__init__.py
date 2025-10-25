@@ -7,6 +7,7 @@ class JS_API:
     
     def installSharkfin(self):
         os.makedirs(frozen_config, exist_ok=True)
+        os.makedirs(os.path.join(frozen_config, "mods"), exist_ok=True)
         if os.path.exists(resource("Sharkfin.exe")) and os.path.isfile(resource("Sharkfin.exe")):
             shutil.copy(resource("Sharkfin.exe"), os.path.join(frozen_config, "Sharkfin.exe"))
             create_shortcut(

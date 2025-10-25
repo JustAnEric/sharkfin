@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./assets/html/styles/main.css">
-    <script src="./assets/html/scripts/main.js"></script>
     <script src="./assets/html/scripts/checkbox.js"></script>
 </head>
 <body>
@@ -49,6 +48,10 @@
                         <img src="./assets/images/cloudcog.webp" style="scale: 1.25;">
                         <text>Deployment</text>
                     </tabButton>
+                    <tabButton style="--bgcolor: #3f85c7;" onclick="document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' })">
+                        <img src="./assets/images/sharkfin_framework.webp" style="scale: 1.25;">
+                        <text>About</text>
+                    </tabButton>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 3px;">
@@ -65,6 +68,15 @@
             </div>
 
             <div class="content" style="padding: 0 10%; overflow-y: auto; max-height: calc(100vh - 24px);">
+                <div id="contextMenuScreen">
+                    <div id="itemMenu">
+                        <div id="contextMenuContent">
+
+                        </div>
+                    </div>
+                </div>
+
+
                 <div id="integrations" style="padding-top: 42px;">
                     <div style="display: flex; line-height: 22px; margin-bottom: 32px;">
                         <div>
@@ -153,7 +165,7 @@
                     </div>
                 </div>
 
-                <div id="modding" style="padding-top: 42px;">
+                <div id="modding" style="padding-top: 42px; display: flex; flex-direction: column; gap: 5px;">
                     <div style="display: flex; line-height: 22px; margin-bottom: 32px;">
                         <div>
                             <text style="font-size: 32px;">Modding</text><br>
@@ -161,6 +173,16 @@
                         </div>
                         <img src="./assets/images/hard_hat.webp" style="position: relative; width: 46px; height: 47px; scale: 2; margin-left: auto; margin-right: 16px;">
                     </div>
+
+                    <uiOption>
+                        <div style="align-content: center; line-height: 16px;">
+                            <text>Modding Enabled</text><br>
+                            <text style="font-size: 12px;">Allow use of mods on sharkfin. This will enable the mod server, and mods will be loaded on Roblox game load.</text>
+                        </div>
+                        <div style="margin-left: auto; align-content: center;">
+                            <checkbox-toggle data-id="modding-enable"></checkbox-toggle>
+                        </div>
+                    </uiOption>
                 </div>
 
                 <div id="fastflags" style="padding-top: 42px;">
@@ -171,9 +193,167 @@
                         </div>
                         <img src="./assets/images/flag.webp" style="position: relative; width: 46px; height: 47px; scale: 2; margin-left: auto; margin-right: 16px;">
                     </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <uiOption id="ff-editor">
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Comprehensive FFlag Editor</text><br>
+                                <text style="font-size: 12px;"></text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="selected">&rarrhk;</div>
+                            </div>
+                        </uiOption>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 32px;">
+                        <div style="display: flex; line-height: 22px;">
+                            <div>
+                                <text style="font-size: 22px;">Rendering and Graphics</text>
+                            </div>
+                        </div>
+
+                        <uiOption id="preferred-gpu">
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Preferred GPU</text><br>
+                                <text style="font-size: 12px;">Select the GPU that Roblox will use for Rendering.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="selected">auto</div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption id="rendering-mode">
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Rendering Mode</text><br>
+                                <text style="font-size: 12px;">Select the Renderer that Roblox will use.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="selected">Vulkan</div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption id="msaa-quality">
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>MSAA Quality</text><br>
+                                <text style="font-size: 12px;">Changes the Multisample Anti-Aliasing Quality</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="selected">4x</div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption id="texture-quality">
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Texture Quality</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="selected">Highest (3)</div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Framerate Limit</text><br>
+                                <text style="font-size: 12px;">Change the framerate limit to a custom limit. Set to 0 to use Roblox's natime framerate unlocker.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="fancy-box">
+                                    <input id="font-size" type="number" min="0" max="420" value="60" id="framerate-limit">
+                                </div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption id="lighting-technology">
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Lighting Technology</text><br>
+                                <text style="font-size: 12px;">This option will force all Roblox games to use your preferred lighting technology.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="selected">Future</div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Preserve Rendering Quality with Display Scaling</text><br>
+                                <text style="font-size: 12px;">Roblox reduces your rendering quality depending on how your display is scaled in Windows.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <checkbox-toggle data-id="fflag-graphics-preserve-render-quality"></checkbox-toggle>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Disable Player Shadows</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <checkbox-toggle data-id="fflag-graphics-disable-player-shadow"></checkbox-toggle>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Disable PostFX</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <checkbox-toggle data-id="fflag-graphics-disable-postfx"></checkbox-toggle>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Disable Terrain Textures</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <checkbox-toggle data-id="fflag-graphics-disable-terrain-textures"></checkbox-toggle>
+                            </div>
+                        </uiOption>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 32px;">
+                        <div style="display: flex; line-height: 22px;">
+                            <div>
+                                <text style="font-size: 22px;">User Interface and Layout</text>
+                            </div>
+                        </div>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>GUI Hiding</text><br>
+                                <text style="font-size: 12px;">Input the ID of a group that you're in.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <div class="fancy-box">
+                                    <input type="text" value="0" id="gui-hiding">
+                                </div>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Disable Fullscreen Title Bar</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <checkbox-toggle data-id="fflag-interface-fullscreen-titlebar"></checkbox-toggle>
+                            </div>
+                        </uiOption>
+
+                        <uiOption>
+                            <div style="align-content: center; line-height: 16px;">
+                                <text>Chrome UI</text><br>
+                                <text style="font-size: 12px;">Disable to use the old Roblox Top Bar.</text>
+                            </div>
+                            <div style="margin-left: auto; align-content: center;">
+                                <checkbox-toggle data-id="fflag-interface-chrome-ui"></checkbox-toggle>
+                            </div>
+                        </uiOption>
+                    </div>
+
                 </div>
 
-                <div id="customization" style="padding-top: 42px;">
+                <div id="customization" style="padding-top: 42px; display: flex; flex-direction: column; gap: 5px;">
                     <div style="display: flex; line-height: 22px; margin-bottom: 32px;">
                         <div>
                             <text style="font-size: 32px;">Customization</text><br>
@@ -181,6 +361,38 @@
                         </div>
                         <img src="./assets/images/bucket.webp" style="position: relative; width: 46px; height: 47px; scale: 2; margin-left: auto; margin-right: 16px;">
                     </div>
+
+                    <uiOption>
+                        <div style="align-content: center; line-height: 16px;">
+                            <text>Font Size</text><br>
+                            <text style="font-size: 12px;">Configure the font size for sharkfin to use.</text>
+                        </div>
+                        <div style="margin-left: auto; align-content: center;">
+                            <div class="fancy-box">
+                                <input id="font-size" type="number" min="8" max="32" value="14">
+                            </div>
+                        </div>
+                    </uiOption>
+
+                    <uiOption id="roblox-mouse-cursor">
+                        <div style="align-content: center; line-height: 16px;">
+                            <text>Roblox Mouse Cursor</text><br>
+                            <text style="font-size: 12px;">Configure the mouse cursor for Roblox to use.</text>
+                        </div>
+                        <div style="margin-left: auto; align-content: center;">
+                            <div class="selected"></div>
+                        </div>
+                    </uiOption>
+
+                    <uiOption id="loader-change-theme">
+                        <div style="align-content: center; line-height: 16px;">
+                            <text>Loader Theme</text><br>
+                            <text style="font-size: 12px;">Configure the loader theme for sharkfin to use.</text>
+                        </div>
+                        <div style="margin-left: auto; align-content: center;">
+                            <div class="selected"></div>
+                        </div>
+                    </uiOption>
                 </div>
 
                 <div id="deployment" style="padding-top: 42px;">
@@ -191,19 +403,70 @@
                         </div>
                         <img src="./assets/images/cloudcog.webp" style="position: relative; width: 46px; height: 47px; scale: 2; margin-left: auto; margin-right: 16px;">
                     </div>
+
+                    <uiOption>
+                        <div style="align-content: center; line-height: 16px;">
+                            <text>Roblox Deployment Channel</text><br>
+                            <text style="font-size: 12px;">Configure the Roblox deployment channel for sharkfin to use.</text>
+                        </div>
+                        <div style="margin-left: auto; align-content: center;">
+                            <div class="fancy-box">
+                                <input type="text" value="production" id="deployment-channel">
+                            </div>
+                        </div>
+                    </uiOption>
                 </div>
 
                 <div id="about" style="padding-top: 42px;">
                     <div style="display: flex; line-height: 22px; margin-bottom: 32px;">
                         <div>
                             <text style="font-size: 32px;">About</text><br>
-                            <text>Configure deployment settings for sharkfin and the Roblox Player.</text>
+                            <text>About sharkfin.</text>
                         </div>
                         <img src="./assets/images/sharkfin_framework.webp" style="position: relative; width: 46px; height: 47px; scale: 2; margin-left: auto; margin-right: 16px;">
                     </div>
+                    <table>
+                        <tbody style="color: #fff;">
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Version:</td>
+                                <td style="padding: 8px;">0.1.0-alpha</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Discord:</td>
+                                <td style="padding: 8px;"><a href="https://discord.com/invite/Ezh3Rp9z7Y" target="_blank">snarkden</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Official GitHub:</td>
+                                <td style="padding: 8px;"><a href="https://github.com/snarkden/sharkfin" target="_blank">snarkden/sharkfin</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Fork GitHub:</td>
+                                <td style="padding: 8px;"><a href="https://github.com/JustAnEric/sharkfin" target="_blank">JustAnEric/sharkfin</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Fork Release Version:</td>
+                                <td style="padding: 8px;">1.1.0</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">App Install Location:</td>
+                                <td style="padding: 8px;" id="app-install-dir" onclick="pywebview.api.getAppInstallDir().then(result => this.innerText = result);">Click to reveal</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="./assets/html/scripts/main.js"></script>
+    <script>
+    /*let int;
+    int = setInterval(() => {
+        if (window.pywebview) {
+            clearInterval(int);
+            window.dispatchEvent(new Event("pywebviewready"));
+        }
+    }, 1000);*/
+    </script>
 </body>
 </html>

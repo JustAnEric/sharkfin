@@ -1,0 +1,22 @@
+{
+    "mod_version": "1.0.0",
+    "mod_name": "sharkfin-app-integration",
+    "mod_description": "Enables application integration for sharkfin.",
+    "mod_author": "JustAnEric",
+    "enabled": true,
+    "entrypoint": "main",
+    "permissions": [
+        "read_game_state",
+        "use_legoproxy_ipc"
+    ],
+    "legoproxy_bindings": [
+        {
+            "firewall": {
+                "out": true,
+                "in": true
+            },
+            "type": "http",
+            "address": ["127.0.0.1", 5000]
+        }
+    ]
+}

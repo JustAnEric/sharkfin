@@ -6,7 +6,7 @@
     "discord-rpc-enable": true,
     "discord-rpc-joining": false,
     "discord-rpc-account": true,
-    "modding-enable": false,
+    "modding-enable": true,
     "modding-always-gca": false,
     "modding-old-death-sound": false,
     "modding-old-avatar-editor-background": false,
@@ -47,6 +47,6 @@
     "deployment-autoupdate-sharkfin": true,
     "deployment-autoupdate-roblox": true,
     "deployment-roblox-channel": "production",
-    "sharkfin-loader-name": "roblox-theme",
+    "sharkfin-loader-name": "sharkfin",
     "experience-tracking": true
 }

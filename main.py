@@ -14,9 +14,24 @@ import httpx
 import pypresence
 import webview
 
+def run_child_mode(mod_dir):
+    from modding.mod_child import run_mod_dir as run_mod
+    return run_mod(mod_dir)
+
+if "--run-mod-child" in sys.argv:
+    idx = sys.argv.index("--run-mod-child")
+    try:
+        mod_dir = sys.argv[idx + 1]
+    except IndexError:
+        print("missing mod dir for --run-mod-child", file=sys.stderr)
+        sys.exit(2)
+    # run as the isolated child; this process's job is only to run the mod
+    sys.exit(run_child_mode(mod_dir))
+
 import sharkfin.RobloxDownloader as RobloxDownloader
 import sharkfin.Utils as Utils
 from sharkfin.Instance import Sharkfin as SharkfinInstance
+from modding import Manager as SharkfinModManager
 
 frozen_config = f"C:\\Users\\{getpass.getuser()}\\AppData\\Local\\sharkfin"
 
@@ -47,6 +62,14 @@ class SharkfinWindow:
     
     def closeWindow(self):
         window.destroy()
+        
+    def afterCloseWindow(self):
+        for mod in sharkfinModManager.mods:
+            if not mod.is_running:
+                print(f"Mod '{mod.name}' is not running, skipping shutdown.")
+                continue
+            sharkfinModManager.send_rpc(mod, {"event":"sharkfin_unloaded"})
+            sharkfinModManager.shutdown_mod(mod)
     
     def minimizeWindow(self):
         window.minimize()
@@ -67,6 +90,115 @@ class SharkfinWindow:
                 return True
         
         return asyncio.run(_func(item, value))
+    
+    def getAppInstallDir(self):
+        if os.path.exists(frozen_config):
+            return frozen_config
+        
+        return os.path.dirname(os.path.abspath(__file__))
+    
+    def getLoaderThemeList(self):
+        themes = []
+        if not is_frozen():
+            themes_path = resource("loader-themes")
+        else:
+            themes_path = os.path.join(frozen_config, "loader-themes")
+        
+        for item in os.listdir(themes_path):
+            item_path = os.path.join(themes_path, item)
+            if os.path.isdir(item_path):
+                themes.append(item)
+        
+        return themes
+    
+    def openLoaderThemesFolder(self):
+        if not is_frozen():
+            themes_path = resource("loader-themes")
+        else:
+            themes_path = os.path.join(frozen_config, "loader-themes")
+        
+        if os.path.exists(themes_path):
+            subprocess.Popen(f'explorer "{themes_path}"')
+            return True
+        else:
+            return False
+    
+    def getGPUList(self):
+        gpus = Utils.get_gpu_list()
+        return gpus
+    
+    def updateFrontendConfigDisplays(self):
+        #window.evaluate_js("")
+        pass
+    
+    def getClientSettings(self):
+        # gets settings for the roblox player
+        playerPath = os.path.exists(os.path.join(self.getAppInstallDir(), "Roblox", "Player", "sf-version.txt"))
+        studioPath = os.path.exists(os.path.join(self.getAppInstallDir(), "Roblox", "Studio", "sf-version.txt"))
+        playerClientVersion = None
+        studioClientVersion = None
+        playerVersion = None
+        studioVersion = None
+        if playerPath:
+            with open(os.path.join(self.getAppInstallDir(), "Roblox", "Player", "sf-version.txt"), "r") as file:
+                content = file.read()
+                playerVersion, playerClientVersion = content.split("|")
+                file.close()
+        if studioPath:
+            with open(os.path.join(self.getAppInstallDir(), "Roblox", "Studio", "sf-version.txt"), "r") as file:
+                content = file.read()
+                studioVersion, studioClientVersion = content.split("|")
+                file.close()
+        return [playerVersion, playerClientVersion, studioVersion, studioClientVersion]
+    
+    def setDefault(self):
+        # for setting sharkfin as the default Roblox bootstrapper.
+        # need to change url protocols
+        # todo;
+        Utils.set_protocol("roblox-player", os.path.join(self.getAppInstallDir(), "Sharkfin.exe"), "sharkfin")
+        return True
+    
+    def reinstallRoblox(self):
+        # for reinstalling roblox
+        if not is_frozen():
+            with open(resource(os.path.join("data", "config.json")), "r") as config:
+                config = json.load(config)
+
+            loaderName = config["sharkfin-loader-name"]
+            with open(resource(os.path.join("loader-themes", loaderName, "config.json")), "r") as loaderConfig:
+                loaderConfig = json.load(loaderConfig)
+                debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+        else:
+            with open(os.path.join(frozen_config, "data", "config.json"), "r") as config:
+                config = json.load(config)
+
+            loaderName = config["sharkfin-loader-name"]
+            with open(os.path.join(frozen_config, "loader-themes", loaderName, "config.json"), "r") as loaderConfig:
+                loaderConfig = json.load(loaderConfig)
+                debug, loaderTitle, loaderWidth, loaderHeight, loadingColor = loaderConfig.get("debug", False), loaderConfig.get("title", "sharkfin"), loaderConfig.get("width", 700), loaderConfig.get("height", 400), loaderConfig.get("loadingColor", "#FFFFFF")
+        
+        self.minimizeWindow()
+        
+        global loader
+        
+        if is_frozen():
+            sharkfinWs.run_server_thread = Thread(target=sharkfinWs.run_server, daemon=False)
+            sharkfinWs.run_server_thread.start()
+        
+        loader = webview.create_window(
+            title="sharkfin" if loaderTitle == "" else loaderTitle,
+            url=resource(os.path.join("loader-themes", loaderName, "window.html")) 
+            if not is_frozen() else 
+            #os.path.join(frozen_config, "loader-themes", loaderName, "window.html"),
+            "http://127.0.0.1:7532/loader-themes/" + loaderName + "/window.html",
+            
+            width=loaderWidth + 16, height=loaderHeight + 39,
+            frameless=True,
+            easy_drag=True,
+            js_api=sharkfinLoaderEditor,
+            background_color="#000000"
+        )
+        return
     
     def getDiscordAvailable(self):
         if 'discord_available' in locals():
@@ -304,11 +436,17 @@ class SharkfinLoaderWindow:
                     updateRichPresence()
 
                 updateRichPresence()
+                if sharkfinModManager:
+                    sharkfinModManager.game_state = [game,user,server]
                 Thread(target=instance.run, daemon=True).start()
         
             #? apply fastflags and file mods
             
             #? start discord rpc and sharkfin mod server
+            
+            for mod in sharkfinModManager.mods:
+                sharkfinModManager.start_and_manage_mod(mod)
+                sharkfinModManager.send_rpc(mod, {"event":"sharkfin_loaded","launch_type":"roblox-player"})
             
             changeStatus("Starting Roblox...")
             time.sleep(1)
@@ -333,6 +471,61 @@ class SharkfinLoaderWindow:
             ...
             
         loader.destroy()
+        
+class SharkfinRobloxEditWindow:
+    def start(self, command=None):
+        def changeStatus(text):
+            loader.run_js(f'document.getElementById("status").innerText = "{text}"')
+        
+        if not is_frozen():
+            with open(resource(os.path.join("data", "config.json")), "r") as config:
+                config = json.load(config)
+        else:
+            with open(os.path.join(frozen_config, "data", "config.json"), "r") as config:
+                config = json.load(config)
+        
+        if not command and len(sys.argv) > 1:
+            command = sys.argv[1]
+        elif not command:
+            command = "roblox-player"
+        else:
+            pass
+        
+        #? load roblox player
+        if command.startswith("roblox"):
+            if not is_frozen():
+                robloxPlayerExists = os.path.exists(resource(os.path.join("Roblox", "Player", "RobloxPlayerBeta.exe")))
+            else:
+                robloxPlayerExists = os.path.exists(os.path.join(frozen_config, "Roblox", "Player", "RobloxPlayerBeta.exe"))
+            
+            if robloxPlayerExists:
+                changeStatus("Reinstalling Roblox...")
+                
+                if not is_frozen():
+                    with open(resource(os.path.join("Roblox", "Player", "sf-version.txt")), "r") as file:
+                        content = file.read()
+                        local_version, local_clientVersionUpload = content.split("|")
+                else:
+                    with open(os.path.join(frozen_config, "Roblox", "Player", "sf-version.txt"), "r") as file:
+                        content = file.read()
+                        local_version, local_clientVersionUpload = content.split("|")
+                
+                response = httpx.get(RobloxDownloader.WINDOWSPLAYER["clientVersionURL"]).json()
+                server_clientVersionUpload = response["clientVersionUpload"]
+                
+                if local_clientVersionUpload != server_clientVersionUpload:
+                    for percentage, status in RobloxDownloader.download(RobloxDownloader.WINDOWSPLAYER):
+                        changeStatus(f"({percentage}%) {status}")
+                        loader.run_js(f'document.getElementById("progress").style.width = "{percentage}%"')
+            else:
+                for percentage, status in RobloxDownloader.download(RobloxDownloader.WINDOWSPLAYER):
+                    changeStatus(f"({percentage}%) {status}")
+                    loader.run_js(f'document.getElementById("progress").style.width = "{percentage}%"')
+            
+            loader.run_js('document.getElementById("progress").style.width = "0%"')
+            loader.destroy()
+            window.maximize()
+            window.show()
         
 class EIFolderWebServer(Flask):
     def __init__(self):
@@ -371,7 +564,10 @@ class EIFolderWebServer(Flask):
 sharkfin = SharkfinWindow()
 sharkfinEditor = SharkfinFFlagEditor()
 sharkfinLoader = SharkfinLoaderWindow()
+sharkfinLoaderEditor = SharkfinRobloxEditWindow()
 sharkfinWs = EIFolderWebServer()
+sharkfinModManager = SharkfinModManager()
+sharkfinModManager.main_file = os.path.abspath(__file__)
 
 if __name__ == "__main__":
     if ((is_frozen() and not os.path.isdir(frozen_config)) or 
@@ -409,6 +605,10 @@ if __name__ == "__main__":
     
     if not discord_available:
         print("Discord was not found, could not configure RPC")
+        
+    for mod in sharkfinModManager.mods:
+        sharkfinModManager.start_and_manage_mod(mod)
+        sharkfinModManager.send_rpc(mod, {"event":"sharkfin_loaded","launch_type":"sharkfin-app"})
     
     if len(sys.argv) > 1: #? launch loader (to load roblox or roblox studio)
         if not is_frozen():
@@ -446,6 +646,8 @@ if __name__ == "__main__":
             background_color="#000000"
         )
         
+        loader.events.closed += sharkfin.afterCloseWindow
+        
         webview.start(debug=debug)
         
     else: #? launch sharkfin
@@ -458,7 +660,7 @@ if __name__ == "__main__":
         
         window = webview.create_window(
             title="sharkfin",
-            url=resource("./new.html"),
+            url=resource("./main.html"),
             
             width=1100 + 16, height=780 + 39,
             frameless=True,
@@ -466,4 +668,6 @@ if __name__ == "__main__":
             js_api=sharkfin
         )
         
-        webview.start(debug=False)
+        window.events.closed += sharkfin.afterCloseWindow
+        
+        webview.start(debug=True)

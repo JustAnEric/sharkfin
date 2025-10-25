@@ -20,7 +20,7 @@
                     <text style="font-size: 14px; top: -17px; pointer-events: none; user-select: none;">v0.1.0-alpha</text>
                     <img src="./assets/images/minimize.webp" draggable="false" width="18px" height="auto" onclick="window.pywebview.api.minimizeWindow()">
                     <img src="./assets/images/close.webp" draggable="false" width="18px" height="auto" onclick="window.pywebview.api.closeWindow()">
-                    <img src="./assets/images/start.webp" draggable="false" width="18px" height="auto">
+                    <img src="./assets/images/start.webp" draggable="false" width="18px" height="auto" onclick="window.pywebview.api.launchRoblox()">
                 </div>
             </div>
         </div>
@@ -48,10 +48,14 @@
                         <img src="./assets/images/cloudcog.webp" style="scale: 1.2;">
                         <text>Deployment</text>
                     </tabButton>
+                    <tabButton style="--bgcolor: #3f85c7;" onclick="document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' })">
+                        <img src="./assets/images/sharkfin_framework.webp" style="scale: 1.2;">
+                        <text>About</text>
+                    </tabButton>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 3px;">
-                    <tabButton style="--bgcolor: #3f85c7;">
+                    <tabButton style="--bgcolor: #3f85c7;" onclick="window.open('https://discord.com/invite/Ezh3Rp9z7Y')">
                         <img src="./assets/images/discord_logo.webp">
                         <text>snarkden</text>
                     </tabButton>
@@ -110,7 +114,7 @@
                         <uiOption>
                             <div style="align-content: center;">
                                 <text>Chat Message and Player Join Tracking</text><br>
-                                <text style="font-size: 12px;">Allow sharkfin to track Sent and Received Messages and players Joining and Leaving from the game you are currently playing on.</text>
+                                <text style="font-size: 12px;">Allow sharkfin to track Sent and Received Messages and players joining and leaving from the game you are currently playing on.</text>
                             </div>
                             <div style="margin-left: auto; align-content: center;">
                                 <checkbox-toggle data-id="tracking-chatmsg-and-playerjoin"></checkbox-toggle>
@@ -122,12 +126,12 @@
                         <div>
                             <text style="font-size: 22px;">Discord Rich Presence</text><br>
                             <text>Display the current Roblox Game you are playing in Discord.</text><br>
-                            <text style="font-size: 10px;">This feature requires the Experiences tracking enabled to run properly.</text>
+                            <text style="font-size: 10px;">This feature requires Experiences tracking to be enabled to run properly.</text>
                         </div>
                         <uiOption>
                             <div style="align-content: center;">
                                 <text>Discord RPC</text><br>
-                                <text style="font-size: 12px;">Enables this feature and Displays the current Roblox Game you are playing.</text>
+                                <text style="font-size: 12px;">Enables this feature and displays the current Roblox Game you are playing.</text>
                             </div>
                             <div style="margin-left: auto; align-content: center;">
                                 <checkbox-toggle data-id="discord-rpc-enable"></checkbox-toggle>
@@ -205,7 +209,7 @@
                         <uiOption>
                             <div style="align-content: center;">
                                 <text>Always Grant Cookie Access</text><br>
-                                <text style="font-size: 12px;">Authorize all s harkfin Mods to use your Roblox Cookie to make Authorized API Calls to the Roblox API. (selected APIs only)</text><br>
+                                <text style="font-size: 12px;">Authorize all sharkfin Mods to use your Roblox Cookie to make Authorized API Calls to the Roblox API. (selected APIs only)</text><br>
                                 <text style="color: #ff9900; font-size: 10px;">This feature should only be enabled when necessary. Else, keep it disabled.</text>
                             </div>
                             <div style="margin-left: auto; align-content: center;">
@@ -608,7 +612,7 @@
                     <div style="display: flex; gap: 5px; flex-direction: column; margin-top: 24px;">
                         <div>
                             <text style="font-size: 22px;">Loader</text><br>
-                            <text style="font-size: 12px;">Change how the sharkfin Roblox Loader should look like.</text><br>
+                            <text style="font-size: 12px;">Change how the sharkfin Roblox Loader should look like. <a href="https://github.com/JustAnEric/sharkfin/blob/main/DOCS.md#loader-themes" target="_blank" rel="noopener noreferrer">Learn more about creating your own Sharkfin loader themes.</a></text><br>
                         </div>
     
                         <uiInteractable id="loader-change-theme">
@@ -764,10 +768,39 @@
                     <div style="display: flex;">
                         <div>
                             <text style="font-size: 32px;">About sharkfin</text><br>
-                            <text>hmm...</text>
+                            <text>About this sharkfin distribution.</text>
                         </div>
                         <img src="./assets/images/sharkfin_framework.webp" style="position: relative; width: 60px; height: 60px; scale: 1.65; margin-left: auto;">
                     </div>
+
+                    <table>
+                        <tbody style="color: #fff;">
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Version:</td>
+                                <td style="padding: 8px;">0.1.0-alpha</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Discord:</td>
+                                <td style="padding: 8px;"><a href="https://discord.com/invite/Ezh3Rp9z7Y" target="_blank">snarkden</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Official GitHub:</td>
+                                <td style="padding: 8px;"><a href="https://github.com/snarkden/sharkfin" target="_blank">snarkden/sharkfin</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Fork GitHub:</td>
+                                <td style="padding: 8px;"><a href="https://github.com/JustAnEric/sharkfin" target="_blank">JustAnEric/sharkfin</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Fork Release Version:</td>
+                                <td style="padding: 8px;">1.1.0</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">App Install Location:</td>
+                                <td style="padding: 8px;" id="app-install-dir" onclick="pywebview.api.getAppInstallDir().then(result => this.innerText = result);">Click to reveal</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <div style="width: 100%; height: 64px;"></div>

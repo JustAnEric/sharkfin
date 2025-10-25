@@ -1,6 +1,6 @@
 const itemMenu = document.getElementById("itemMenu")
 
-window.addEventListener("pywebviewready", function() {
+window.addEventListener("pywebviewready", async function() {
     setTimeout(() => {
         document.getElementById("contextMenuContent").style.backdropFilter = "blur(0px)";
         document.getElementById('sharkfinscreen').style.scale = "0.8";
@@ -307,7 +307,7 @@ window.addEventListener("pywebviewready", function() {
             document.getElementById("versionguid").innerText = clientVersion;
         })
     })
-})
+});
 
 function hideMenu() {
     document.getElementById("contextMenuContent").style.backdropFilter = "blur(0px)";
