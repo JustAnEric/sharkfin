@@ -159,4 +159,98 @@ The properties included in the `config.json` file are the defaults for Sharkfin 
 
 ## Modding Sharkfin
 
-There is not an official library yet that can achieve sufficient modification of Sharkfin or Roblox. However, Sharkfin modifications will soon come out for this fork. There is no ET (estimated time) for the completion and release of this.
+There is not an official library yet that can achieve sufficient modification of Sharkfin or Roblox. However, Sharkfin **utilities** *(for now)* are here inside this fork, and you can create your own using these file templates:
+
+```cmd
+| your-mod
+| | manifest.json
+| | main.py
+```
+
+`manifest.json`
+
+```json
+{
+    "mod_version": "1.0.0",
+    "mod_name": "sharkfin-app-web-server",
+    "mod_description": "A web server for sharkfin state details.",
+    "mod_author": "JustAnEric",
+    "enabled": true,
+    "permissions": [
+        "read_game_state",
+        "use_legoproxy_ipc"
+    ],
+    "legoproxy_bindings": [
+        {
+            "firewall": {
+                "out": true,
+                "in": true
+            },
+            "type": "http",
+            "address": ["127.0.0.1", 5000]
+        }
+    ]
+}
+```
+
+> [!NOTE]
+> This manifest indicates the modification's general details, and asks Sharkfin to bind to a port using a lightweight and modified version of [LegoProxy](https://github.com/JustAnEric/LegoProxy). The firewall `out` and `in` properties must be set to **`true`** for the **`http`** type.
+
+`main.py`
+
+```python
+from SharkfinModAPI import fin, shark  # variables
+import sys
+
+responded_to = set()
+
+@fin.event('do_work')
+def handle_do_work(msg):
+    if not shark.has_permission_read_game_state:
+        # log the error
+        shark.log("This instance does not have the permission 'read_game_state'. We can't continue.")
+        sys.exit(1)
+    
+@shark.legoproxy.on_access_route('/game')
+def handle_legoproxy_relay_request_game(request: shark._legoproxy._legoproxy_relay_request):
+    history = shark.read_game_state()[0] # game state
+    responded_to.add(request.id)
+    return request.respond({"current_state":history}, 200, headers={ "Content-Type": "application/json" })
+
+@shark.legoproxy.on_access_route('/user')
+def handle_legoproxy_relay_request_user(request: shark._legoproxy._legoproxy_relay_request):
+    history = shark.read_game_state()[1] # user state
+    responded_to.add(request.id)
+    return request.respond({"current_state":history}, 200, headers={ "Content-Type": "application/json" })
+
+@shark.legoproxy.on_access_route('/server')
+def handle_legoproxy_relay_request_server(request: shark._legoproxy._legoproxy_relay_request):
+    history = shark.read_game_state()[2] # server state
+    responded_to.add(request.id)
+    return request.respond({"current_state":history}, 200, headers={ "Content-Type": "application/json" })
+
+@shark.legoproxy.on_access_any_route()
+def handle_legoproxy_relay_error(request: shark._legoproxy._legoproxy_relay_request):
+    if request.id not in list(responded_to):
+        return request.respond({"error": "This page does not exist."}, 404, headers={ "Content-Type": "application/json" })
+    else:
+        responded_to.remove(request.id)
+        pass  # only catch the requests that weren't responded to
+```
+
+Then, you may add the modification to the Sharkfin mods folder:
+
+```cmd
+| C:
+| | Users
+| | | <YOUR_USERNAME>
+| | | | AppData
+| | | | | Local
+| | | | | | sharkfin
+| | | | | | | mods
+| | | | | | | | your-mod
+| | | | | | | | | manifest.json
+| | | | | | | | | main.py
+```
+
+And restart Sharkfin. Enter in `http://127.0.0.1:5000` into your URL bar to see your modification respond to HTTP requests.
